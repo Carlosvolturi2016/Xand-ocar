@@ -22,7 +22,18 @@ function showSection(sectionName) {
         item.classList.remove('active');
     });
     
-    document.querySelector(`.nav-item[onclick="showSection('${sectionName}')"]`).classList.add('active');
+    const navItem = document.querySelector(`.nav-item[onclick="showSection('${sectionName}')"]`);
+    if (navItem) {
+        navItem.classList.add('active');
+    }
+    
+    // Atualizar dados específicos da seção
+    if (sectionName === 'relatorios') {
+        verificarEstoqueBaixo();
+        carregarRelatorioVendas();
+    } else if (sectionName === 'dashboard') {
+        atualizarDashboard();
+    }
 }
 
 // Sistema de arquivos JSON
@@ -63,6 +74,7 @@ function importarDadosJSON(event) {
                 carregarProdutos();
                 carregarSelectProdutos();
                 atualizarDashboard();
+                verificarEstoqueBaixo();
                 
                 showAlert('Dados importados com sucesso!', 'success');
             }
@@ -100,6 +112,7 @@ function carregarDados() {
     carregarProdutos();
     carregarSelectProdutos();
     atualizarDashboard();
+    verificarEstoqueBaixo();
 }
 
 // Gerenciamento de produtos
@@ -110,6 +123,7 @@ document.getElementById('form-produto').addEventListener('submit', function(e) {
         id: editandoId || Date.now().toString(),
         codigo: document.getElementById('codigo').value,
         nome: document.getElementById('nome').value,
+        categoria: document.getElementById('categoria').value,
         preco: parseFloat(document.getElementById('preco').value),
         estoque: parseInt(document.getElementById('estoque').value)
     };
@@ -128,6 +142,7 @@ document.getElementById('form-produto').addEventListener('submit', function(e) {
     carregarProdutos();
     carregarSelectProdutos();
     atualizarDashboard();
+    verificarEstoqueBaixo();
 });
 
 function carregarProdutos() {
@@ -137,7 +152,7 @@ function carregarProdutos() {
     if (produtos.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="5" class="text-center text-muted">
+                <td colspan="6" class="text-center text-muted">
                     Nenhuma peça cadastrada
                 </td>
             </tr>
@@ -150,9 +165,10 @@ function carregarProdutos() {
         tr.innerHTML = `
             <td><strong>${produto.codigo}</strong></td>
             <td>${produto.nome}</td>
+            <td><span class="badge-categoria">${formatarCategoria(produto.categoria)}</span></td>
             <td>R$ ${produto.preco.toFixed(2)}</td>
             <td>
-                <span class="${produto.estoque < 5 ? 'estoque-baixo' : 'estoque-normal'}">
+                <span class="${produto.estoque < 2 ? 'estoque-baixo' : 'estoque-normal'}">
                     ${produto.estoque}
                 </span>
             </td>
@@ -169,11 +185,34 @@ function carregarProdutos() {
     });
 }
 
+function formatarCategoria(categoria) {
+    const categorias = {
+        'motor': 'Motor',
+        'suspensao': 'Suspensão',
+        'freios': 'Freios',
+        'eletrica': 'Elétrica',
+        'transmissao': 'Transmissão',
+        'outros': 'Outros'
+    };
+    return categorias[categoria] || categoria;
+}
+
+function filtrarProdutos() {
+    const termo = document.getElementById('search-produtos').value.toLowerCase();
+    const linhas = document.querySelectorAll('#tabela-produtos tr');
+    
+    linhas.forEach(linha => {
+        const texto = linha.textContent.toLowerCase();
+        linha.style.display = texto.includes(termo) ? '' : 'none';
+    });
+}
+
 function editarProduto(id) {
     const produto = produtos.find(p => p.id === id);
     document.getElementById('produto-id').value = produto.id;
     document.getElementById('codigo').value = produto.codigo;
     document.getElementById('nome').value = produto.nome;
+    document.getElementById('categoria').value = produto.categoria;
     document.getElementById('preco').value = produto.preco;
     document.getElementById('estoque').value = produto.estoque;
     editandoId = id;
@@ -188,6 +227,7 @@ function excluirProduto(id) {
         carregarProdutos();
         carregarSelectProdutos();
         atualizarDashboard();
+        verificarEstoqueBaixo();
         showAlert('Peça excluída com sucesso!', 'success');
     }
 }
@@ -321,16 +361,19 @@ function finalizarVenda() {
     carregarProdutos();
     carregarSelectProdutos();
     atualizarDashboard();
+    verificarEstoqueBaixo();
 }
 
 // Dashboard
 function atualizarDashboard() {
     const totalVendas = vendas.reduce((total, venda) => total + venda.total, 0);
     const totalEstoque = produtos.reduce((total, produto) => total + produto.estoque, 0);
+    const produtosEstoqueBaixo = produtos.filter(p => p.estoque <= 1).length;
     
     document.getElementById('total-vendas').textContent = `R$ ${totalVendas.toFixed(2)}`;
     document.getElementById('total-estoque').textContent = totalEstoque;
     document.getElementById('total-produtos').textContent = produtos.length;
+    document.getElementById('total-alertas').textContent = produtosEstoqueBaixo;
     
     atualizarChartMaisVendidos();
 }
@@ -379,36 +422,7 @@ function atualizarChartMaisVendidos() {
     chartContainer.innerHTML = chartHTML;
 }
 
-// Sistema de alertas
-function showAlert(mensagem, tipo = 'info') {
-    const alertasAntigos = document.querySelectorAll('.alerta-temporario');
-    alertasAntigos.forEach(alerta => alerta.remove());
-
-    const alerta = document.createElement('div');
-    alerta.className = `alerta alerta-${tipo} alerta-temporario`;
-    alerta.innerHTML = `
-        <div class="d-flex justify-content-between align-items-start">
-            <div>
-                <strong>${tipo === 'success' ? '✓' : tipo === 'error' ? '✗' : 'ℹ'} ${mensagem}</strong>
-            </div>
-            <button type="button" class="btn-close" onclick="this.parentElement.parentElement.remove()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    `;
-    
-    const container = document.createElement('div');
-    container.className = 'alertas-sistema';
-    container.appendChild(alerta);
-    document.body.appendChild(container);
-
-    setTimeout(() => {
-        if (alerta.parentElement) {
-            alerta.remove();
-        }
-    }, 5000);
-}
-// Sistema de alertas de estoque
+// NOVAS FUNÇÕES: Sistema de alertas de estoque
 function verificarEstoqueBaixo() {
     const produtosEstoqueBaixo = produtos.filter(produto => produto.estoque <= 1);
     const alertasContainer = document.getElementById('alertas-estoque');
@@ -432,7 +446,7 @@ function verificarEstoqueBaixo() {
             <div>
                 <strong>${produto.codigo} - ${produto.nome}</strong>
                 <br>
-                <span>Estoque: ${produto.estoque} unidade(s)</span>
+                <span>Estoque: ${produto.estoque} unidade(s) - ${produto.estoque === 0 ? 'ESGOTADO' : 'ESTAQUE BAIXO'}</span>
             </div>
             <div>
                 <button class="btn btn-primary btn-sm" onclick="editarProduto('${produto.id}')">
@@ -507,6 +521,46 @@ function gerarRelatorioVendas() {
     showAlert(`Relatório com ${vendas.length} vendas exportado com sucesso!`, 'success');
 }
 
+// Gerar relatório de estoque
+function gerarRelatorioEstoque() {
+    if (produtos.length === 0) {
+        showAlert('Não há produtos cadastrados!', 'info');
+        return;
+    }
+    
+    const relatorio = {
+        titulo: "Relatório de Estoque - Xandãocar",
+        data: new Date().toLocaleDateString('pt-BR'),
+        totalProdutos: produtos.length,
+        valorTotalEstoque: produtos.reduce((total, produto) => total + (produto.preco * produto.estoque), 0),
+        produtos: produtos.map(produto => ({
+            codigo: produto.codigo,
+            nome: produto.nome,
+            categoria: produto.categoria,
+            preco: produto.preco,
+            estoque: produto.estoque,
+            valorTotal: produto.preco * produto.estoque
+        })),
+        alertas: produtos.filter(p => p.estoque <= 1).map(p => ({
+            codigo: p.codigo,
+            nome: p.nome,
+            estoque: p.estoque
+        }))
+    };
+    
+    const blob = new Blob([JSON.stringify(relatorio, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `relatorio_estoque_xandaocar_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showAlert(`Relatório de estoque com ${produtos.length} produtos exportado!`, 'success');
+}
+
 // Calcular produtos mais vendidos para o relatório
 function calcularProdutosMaisVendidos() {
     const vendasPorProduto = {};
@@ -568,80 +622,32 @@ function carregarRelatorioVendas() {
     });
 }
 
-// Atualizar a função showSection para incluir a nova seção
-function showSection(sectionName) {
-    document.querySelectorAll('.content-section').forEach(section => {
-        section.classList.remove('active');
-    });
-    
-    document.getElementById(`${sectionName}-section`).classList.add('active');
-    
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-    });
-    
-    document.querySelector(`.nav-item[onclick="showSection('${sectionName}')"]`).classList.add('active');
-    
-    // Atualizar dados específicos da seção
-    if (sectionName === 'relatorios') {
-        verificarEstoqueBaixo();
-        carregarRelatorioVendas();
-    }
-}
+// Sistema de alertas
+function showAlert(mensagem, tipo = 'info') {
+    const alertasAntigos = document.querySelectorAll('.alerta-temporario');
+    alertasAntigos.forEach(alerta => alerta.remove());
 
-// Atualizar a função salvarDados para verificar estoque
-function salvarDados() {
-    const dados = {
-        produtos: produtos,
-        vendas: vendas,
-        ultimaAtualizacao: new Date().toISOString()
-    };
-    localStorage.setItem('xandaocar_dados', JSON.stringify(dados));
+    const alerta = document.createElement('div');
+    alerta.className = `alerta alerta-${tipo} alerta-temporario`;
+    alerta.innerHTML = `
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <strong>${tipo === 'success' ? '✓' : tipo === 'error' ? '✗' : 'ℹ'} ${mensagem}</strong>
+            </div>
+            <button type="button" class="btn-close" onclick="this.parentElement.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
     
-    // Sempre verificar estoque após salvar
-    verificarEstoqueBaixo();
-}
+    const container = document.createElement('div');
+    container.className = 'alertas-sistema';
+    container.appendChild(alerta);
+    document.body.appendChild(container);
 
-// Atualizar a função finalizarVenda para verificar estoque
-function finalizarVenda() {
-    if (carrinhoVenda.length === 0) {
-        showAlert('Adicione itens à venda antes de finalizar!', 'error');
-        return;
-    }
-    
-    const venda = {
-        id: Date.now().toString(),
-        data: new Date().toISOString(),
-        itens: [...carrinhoVenda],
-        total: carrinhoVenda.reduce((total, item) => total + (item.preco * item.quantidade), 0)
-    };
-    
-    venda.itens.forEach(itemVenda => {
-        const produto = produtos.find(p => p.id === itemVenda.produtoId);
-        if (produto) {
-            produto.estoque -= itemVenda.quantidade;
+    setTimeout(() => {
+        if (alerta.parentElement) {
+            alerta.remove();
         }
-    });
-    
-    vendas.push(venda);
-    
-    salvarDados();
-    
-    showAlert(`Venda finalizada com sucesso! Total: R$ ${venda.total.toFixed(2)}`, 'success');
-    
-    carrinhoVenda = [];
-    atualizarCarrinhoVenda();
-    carregarProdutos();
-    carregarSelectProdutos();
-    atualizarDashboard();
-    
-    // Verificar estoque após venda
-    verificarEstoqueBaixo();
+    }, 5000);
 }
-
-// Adicionar item ao menu de navegação no HTML
-// Adicione este item no seu sidebar-nav:
-// <a href="#" class="nav-item" onclick="showSection('relatorios')">
-//     <i class="fas fa-chart-bar"></i>
-//     <span>Relatórios</span>
-// </a>
