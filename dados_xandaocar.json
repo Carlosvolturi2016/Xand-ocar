@@ -1,0 +1,83 @@
+{
+  "produtos": [
+    {
+      "id": "1759602368380",
+      "codigo": "001",
+      "nome": "Balança Dianteira Esquerdo com Bucha sem Pivô Cobalt Onix Prisma Spin Todas as Versões 2012 até 2020 Fabricante Cofap",
+      "preco": 252,
+      "estoque": 9
+    },
+    {
+      "id": "1759602972387",
+      "codigo": "002",
+      "nome": "Balança Dianteira Lado Direito com Bucha sem Pivô Meriva 2003 até 2012 Montana 2004 até 2010 Fabricante Perfect",
+      "preco": 204,
+      "estoque": 4
+    },
+    {
+      "id": "1759603219635",
+      "codigo": "003",
+      "nome": "Homocinética Externa Lado da Roda Argo e Cronos Drive 1.3 FireFly Flex Palio Uno Fiorino Grand Siena 1.4 Evo",
+      "preco": 174.5,
+      "estoque": 2
+    },
+    {
+      "id": "1759603284994",
+      "codigo": "004",
+      "nome": "Homocinética Lado da Roda Celta 2000 até 2013 Prisma 07 até 2012 Corsa 94 até 2012 Classic 94 até 2015 Motores 1.0 1.4 1.6 Fabricante Cofap",
+      "preco": 129.5,
+      "estoque": 5
+    },
+    {
+      "id": "1759603335835",
+      "codigo": "005",
+      "nome": "Amortecedor Dianteiro Nakata Palio Siena Strada 2001 até 2012",
+      "preco": 246.5,
+      "estoque": 6
+    },
+    {
+      "id": "1759603396450",
+      "codigo": "006",
+      "nome": "Amortecedor Traseiro Turbogás Palio e Siena Todos 96 até 2017 Exceto Novo Palio e Grand Siena (Preço Unitário)",
+      "preco": 149.5,
+      "estoque": 6
+    },
+    {
+      "id": "1759603480858",
+      "codigo": "007",
+      "nome": "Amortecedor Traseiro Pressurizado Gol e Voyage Versões G5 G6 G7 2008 até 2020 Exceto Gol Rallye",
+      "preco": 176,
+      "estoque": 2
+    },
+    {
+      "id": "1759603624594",
+      "codigo": "008",
+      "nome": "Óleo Fluido Direção Hidráulica Vermelho Lubrax ATF TA 500ml",
+      "preco": 21.9,
+      "estoque": 23
+    },
+    {
+      "id": "1759603680722",
+      "codigo": "009",
+      "nome": "Correia Do Motor Novo Ecosport 2012 em diante New Fiesta 2013 em diante Novo Ka 2013 em diante Motor 1.6 Sigma",
+      "preco": 206,
+      "estoque": 5
+    },
+    {
+      "id": "1759603713290",
+      "codigo": "010",
+      "nome": "Kit Correia Dentada + Esticador Original Motores Fire 1.0 / 1.4 com 129 Dentes Palio Siena Strada Mobi Doblo Idea Punto Fiorino Grand Siena Fiat500",
+      "preco": 231.9,
+      "estoque": 5
+    },
+    {
+      "id": "1759603797434",
+      "codigo": "011",
+      "nome": "Amortecedor de Suspensão Traseiro Fiat Idea 2005 em Diante",
+      "preco": 136,
+      "estoque": 5
+    }
+  ],
+  "vendas": [],
+  "ultimaAtualizacao": "2025-10-05T02:28:45.034Z"
+}
